@@ -1,0 +1,6 @@
+@use './variables';
+
+.header{
+  background-color: variables.$theme-color-primary;
+  color: #fff;
+}

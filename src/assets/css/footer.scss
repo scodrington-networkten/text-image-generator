@@ -1,0 +1,6 @@
+@use './_variables.scss';
+
+.footer{
+  background-color: variables.$theme-color-primary;
+  color: #fff;
+}
