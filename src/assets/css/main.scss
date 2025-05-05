@@ -30,9 +30,14 @@ button,input[type="button"]{
   color: #fff;
 }
 
+.image-container{
+  container-type: inline-size;
+}
+
 .image-text{
   color: variables.$theme-color-text-primary;
   text-shadow: 1px 1px 3px #333;
+  font-size: 7cqw;
 }
 
 

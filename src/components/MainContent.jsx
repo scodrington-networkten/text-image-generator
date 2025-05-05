@@ -1,5 +1,6 @@
 import image from '@image-assets/llama.webp';
 import {useState, useEffect} from "react";
+import {Exception} from "sass";
 
 const MainContent = () => {
 
@@ -9,13 +10,58 @@ const MainContent = () => {
         url: image
     });
 
-    //called to fetch data on load
-    useEffect(function() {
-        getImage();
-    });
+    class Meme {
+        constructor({box_count, captions, height, id, name, url, width}) {
+            this.box_count = box_count;
+            this.captions = captions;
+            this.height = height;
+            this.id = id;
+            this.name = name;
+            this.url = url;
+            this.width = width;
+        }
+    }
 
+    const [memes, setMemes] = useState(null);
+    const [selectedImage, setSelectedImage] = useState(null);
 
     const [nameData, setNameData] = useState([]);
+
+
+    //fetch image data from API and set
+    useEffect(function() {
+
+        fetch('https://api.imgflip.com/get_memes')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Exception(`Could not get a response from API: ${response.status}`);
+                }
+                return response.json();
+            }).then(jsonData => {
+
+            let data = []
+            jsonData.data.memes.map((item) => {
+                data.push(new Meme(item))
+            })
+
+            setMemes(data);
+            setRandomImage(data);
+        })
+
+    }, [])
+
+    const setRandomImage = (data) => {
+
+        let chosen = data[Math.floor(Math.random() * data.length)];
+        setSelectedImage(chosen);
+    }
+
+    const onButtonClick = (e) => {
+
+        e.preventDefault()
+        setRandomImage(memes);
+    }
+
 
     //change the top of bottom text
     const handleTextChange = (event) => {
@@ -29,34 +75,34 @@ const MainContent = () => {
         }));
     }
 
-    const getImage = async () => {
 
-        //e.preventDefault();
+    //get sample name data
+    const getData = async () => {
+
+        let items = [];
         try {
             const response = await fetch('https://swapi.info/api/people');
-
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            let items = [];
             const data = await response.json();
             data.map(item => {
-               items.push(item.name);
+                items.push(item.name);
             })
-
-            setNameData(items);
-
 
         } catch (error) {
             throw new Error(`There was an error here: ${error}`);
         }
+
+        return items;
+
     }
 
 
     return (
         <section className="flex justify-center">
-            <div className="container my-4 px-4 py-2">
+            <div className="container my-4 px-4 py-2 max-w-5xl">
                 <form className="flex flex-wrap gap-4">
                     <section className="field-section flex flex-wrap flex-col gap-3 w-1/2 flex-[0_0_calc(50%-0.5rem)]">
                         <label htmlFor="top_text" className="font-medium">Top Text</label>
@@ -73,13 +119,13 @@ const MainContent = () => {
                                value={data.bottomText}/>
                     </section>
                     <section className="button-section w-full">
-                        <button name="generate" onClick={getImage} id="generate"
+                        <button name="generate" id="generate" onClick={onButtonClick}
                                 className="w-full py-3 px-6 rounded">Get a new Image
                         </button>
                     </section>
                     <section className="image-section w-full">
                         <div className="image-container flex-grow-1 relative">
-                            <img src={data.url} className="w-full"/>
+                            <img src={selectedImage && selectedImage.url ? selectedImage.url : image} className="w-full"/>
                             <span className="top" id="top_text_image"
                                   className="image-text font-bold uppercase text-5xl text-center absolute inset-x-0 top-0 align-text-center my-5">{data.topText}</span>
                             <span className="bottom" id="bottom_text_image"
@@ -88,7 +134,9 @@ const MainContent = () => {
                     </section>
                     <section>
                         {nameData.length > 0 && <ul>
-                            {nameData.map((item, index) => { return <li key={index}>{item}</li>})}
+                            {nameData.map((item, index) => {
+                                return <li key={index}>{item}</li>
+                            })}
                         </ul>}
                     </section>
                 </form>
